@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 //#define __DEBUG__
 
-#define Version "1.13"
+#define Version "1.14"
 #define EAName "NinjaLoveFishSIGNAL"
 
 #property strict
@@ -91,8 +91,25 @@ int OnCalculate(const int rates_total,
    Symb("==");
 
    Symb("_DXY");
-   Symb("XAUUSD");
-   Symb("CADJPY");
+   Symb("AUDCHF");
+   Symb("AUDJPY");
+   Symb("AUDUSD");
+   //Symb("CADCHF");
+   //Symb("CADJPY");
+   //Symb("CHFJPY");
+   Symb("EURAUD");
+   Symb("EURJPY");
+   Symb("EURNZD");
+   Symb("GBPJPY");
+   Symb("GBPNZD");
+   //Symb("GBPSGD");
+   Symb("GBPUSD");
+   Symb("NZDCHF");
+   Symb("NZDJPY");
+   Symb("NZDSGD");
+   Symb("USDCAD");
+   //Symb("USDCHF");
+   Symb("USDJPY");
 
    ObjectSetInteger(0,Symbol(),OBJPROP_BGCOLOR,clrGreenYellow);//设置当前的货币兑btn的颜色.
 
@@ -222,13 +239,13 @@ void BG()
 
    ObjectDelete(name);
    ObjectCreate(name,OBJ_LABEL,0,0,0);
-   ObjectSetText(name,value,500,"Webdings",clrBlack);
+   ObjectSetText(name,value,900,"Webdings",clrBlack);
    ObjectSet(name,OBJPROP_CORNER,ANCHOR_LEFT_UPPER);
    ObjectSet(name,OBJPROP_ANCHOR,ANCHOR_LEFT_UPPER);
 //ObjectSetString(0,name,OBJPROP_TOOLTIP,"NinjaLoveFishSIGNAL");
    ObjectSet(name,OBJPROP_SELECTABLE,0);
-   ObjectSet(name,OBJPROP_XDISTANCE,-280);
-   ObjectSet(name,OBJPROP_YDISTANCE,-180);
+   ObjectSet(name,OBJPROP_XDISTANCE,-810);
+   ObjectSet(name,OBJPROP_YDISTANCE,0);
 //---
   }
 //+------------------------------------------------------------------+
