@@ -18,62 +18,35 @@
 #include <stderror.mqh>
 #include <stdlib.mqh>
 #include "comm.mqh"
-//+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
-string getPeriodName()
+
+#property indicator_chart_window    // Indicator is drawn in the main window
+#property indicator_buffers 1       // Number of buffers
+#property indicator_color1 Blue     // Color of the 1st line
+
+double Buf_0[];             // Declaring arrays (for indicator buffers)
+int n=1;                    //一行的行数。
+
+//--------------------------------------------------------------------
+int OnInit() // Special function init()
   {
-   int p=Period();
-
-   if(p==240)
-     {
-      return "H4";
-     }
-   if(p==10080)
-     {
-      return "W";
-     }
-   return IntegerToString(p);
-  }
-//+------------------------------------------------------------------+
-
-
-string EA=EAName+" v"+Version+" "+Symbol()+" "+getPeriodName();
-//+------------------------------------------------------------------+
-//| Custom indicator initialization function                         |
-//+------------------------------------------------------------------+
-int OnInit()
-  {
-//--- indicator buffers mapping
    BG();
-//---
-   return(INIT_SUCCEEDED);
+   SetIndexBuffer(0,Buf_0);         // Assigning an array to a buffer
+   SetIndexStyle(0,DRAW_LINE,STYLE_SOLID,1);// Line style
+   return 0;                          // Exit the special funct. init()
   }
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void deinit()
+void start()
   {
-   ObjectsDeleteAll();
-  }
-
-//调用此函数就可以快速的设置货币兑.
-int n=1;
-//+------------------------------------------------------------------+
-//| Custom indicator iteration function                              |
-//+------------------------------------------------------------------+
-int OnCalculate(const int rates_total,
-                const int prev_calculated,
-                const datetime &time[],
-                const double &open[],
-                const double &high[],
-                const double &low[],
-                const double &close[],
-                const long &tick_volume[],
-                const long &volume[],
-                const int &spread[])
-  {
-//---
+   int i,Counted_bars;                // Number of counted bars
+   Counted_bars=IndicatorCounted(); // Number of counted bars
+   i=Bars-Counted_bars-1;           // Index of the first uncounted
+   while(i>=0)                      // Loop for uncounted bars
+     {
+      Buf_0[i]=iMA(Symbol(),PERIOD_H4,700,0,MODE_SMMA,PRICE_CLOSE,i);
+      i--;                          // Calculating index of the next bar
+     }
 
    Symb("AUDCAD");
    Symb("AUDNZD");
@@ -94,30 +67,54 @@ int OnCalculate(const int rates_total,
    Symb("AUDCHF");
    Symb("AUDJPY");
    Symb("AUDUSD");
-   //Symb("CADCHF");
-   //Symb("CADJPY");
-   //Symb("CHFJPY");
+   Symb("CADCHF");
+   Symb("CADJPY");
+//Symb("CHFJPY");
    Symb("EURAUD");
    Symb("EURJPY");
    Symb("EURNZD");
    Symb("GBPJPY");
-   Symb("GBPNZD");
-   //Symb("GBPSGD");
+//Symb("GBPNZD");
+//Symb("GBPSGD");
    Symb("GBPUSD");
    Symb("NZDCHF");
    Symb("NZDJPY");
-   Symb("NZDSGD");
+//Symb("NZDSGD");
    Symb("USDCAD");
-   //Symb("USDCHF");
+//Symb("USDCHF");
    Symb("USDJPY");
 
    ObjectSetInteger(0,Symbol(),OBJPROP_BGCOLOR,clrGreenYellow);//设置当前的货币兑btn的颜色.
 
    n=1;
-//--- return value of prev_calculated for next call
-   return(rates_total);
   }
 //+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+string getPeriodName()
+  {
+   int p=Period();
+
+   if(p==240)
+     {
+      return "H4";
+     }
+   if(p==10080)
+     {
+      return "W";
+     }
+   return IntegerToString(p);
+  }
+//+------------------------------------------------------------------+
+
+string EA=EAName+" v"+Version+" "+Symbol()+" "+getPeriodName();
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void deinit()
+  {
+   ObjectsDeleteAll();
+  }
 
 void OnChartEvent(const int id,const long &lparam,const double &dparam,const string &sparam)
   {
@@ -175,8 +172,8 @@ void label(string name,string value,double rsi,int x,int y)
    ObjectCreate(name,OBJ_LABEL,windows,0,0);
    color cc=clrWhite;
 
-   if(rsi>70) cc = clrRed;
-   if(rsi<30) cc = clrBlue;
+   if(rsi>65) cc = clrRed;
+   if(rsi<35) cc = clrBlue;
 
    ObjectSetText(name,value,10,"Calibri",cc);
    if(StringFind(name,"NinjaLoveFish")!=-1)
@@ -220,12 +217,15 @@ void Symb(string sy)
    double ma=iMA(sy,PERIOD_H4,700,0,MODE_SMMA,PRICE_CLOSE,0);
    double Ma_Bid_Diff=MathAbs(ma-b)/MarketInfo(sy,MODE_POINT);
 
-   if(Ma_Bid_Diff > 2000 && b > ma) cc = 100;
-   if(Ma_Bid_Diff > 2000 && b < ma) cc = 0;
+   if(Ma_Bid_Diff > 1500 && b > ma) cc = 100;
+   if(Ma_Bid_Diff > 1500 && b < ma) cc = 0;
 
    label(sy+"MA","MA",cc,230,btop+m*n);
 
-   btn(sy,280,btop+m*n);
+   double sp=(int)MarketInfo(sy,MODE_SPREAD);
+   label(sy+"SP",DoubleToStr(sp,0),50,280,btop+m*n);
+
+   btn(sy,320,btop+m*n);
 
    n++;
 
@@ -244,7 +244,7 @@ void BG()
    ObjectSet(name,OBJPROP_ANCHOR,ANCHOR_LEFT_UPPER);
 //ObjectSetString(0,name,OBJPROP_TOOLTIP,"NinjaLoveFishSIGNAL");
    ObjectSet(name,OBJPROP_SELECTABLE,0);
-   ObjectSet(name,OBJPROP_XDISTANCE,-810);
+   ObjectSet(name,OBJPROP_XDISTANCE,-780);
    ObjectSet(name,OBJPROP_YDISTANCE,0);
 //---
   }
