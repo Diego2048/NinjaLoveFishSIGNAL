@@ -13,8 +13,6 @@
 #property copyright "Copyright @2018, Qin Zhao"
 #property link "https://www.mql5.com/en/users/zq535228"
 #property icon "3232.ico"
-#property indicator_chart_window
-
 #include <stderror.mqh>
 #include <stdlib.mqh>
 #include "comm.mqh"
@@ -23,9 +21,13 @@
 #property indicator_buffers 1       // Number of buffers
 #property indicator_color1 Blue     // Color of the 1st line
 
+extern int               MagicNumberBuy       = 1234;
+extern int               MagicNumberSell      = 4321;
+
+
+
 double Buf_0[];             // Declaring arrays (for indicator buffers)
 int n=1;                    //一行的行数。
-
 //--------------------------------------------------------------------
 int OnInit() // Special function init()
   {
@@ -63,7 +65,7 @@ void start()
    Symb("USDSGD");
    Symb("==");
 
-   Symb("_DXY");
+//Symb("_DXY");
    Symb("AUDCHF");
    Symb("AUDJPY");
    Symb("AUDUSD");
@@ -115,7 +117,9 @@ void deinit()
   {
    ObjectsDeleteAll();
   }
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void OnChartEvent(const int id,const long &lparam,const double &dparam,const string &sparam)
   {
    double h=0;
@@ -123,27 +127,33 @@ void OnChartEvent(const int id,const long &lparam,const double &dparam,const str
    if(id==CHARTEVENT_OBJECT_CLICK && ObjectGetInteger(0,sparam,OBJPROP_STATE))
      {
       bool selected1=ObjectGetInteger(0,sparam,OBJPROP_STATE);
-      Print(Period());
-      //dump(PERIOD_CURRENT);
-      if(Symbol()==sparam && Period()==PERIOD_H4)
+      if(Symbol()==sparam && Period()==PERIOD_D1)
         {
-         ChartSetSymbolPeriod(0,sparam,PERIOD_W1);
+         ChartSetSymbolPeriod(0,sparam,PERIOD_H4);
         }
       else
         {
-         ChartSetSymbolPeriod(0,sparam,PERIOD_H4);
+         ChartSetSymbolPeriod(0,sparam,PERIOD_D1);
         }
 
       ObjectSetInteger(0,sparam,OBJPROP_STATE,0);
       ObjectSetInteger(0,sparam,OBJPROP_BGCOLOR,clrGreenYellow);
-     }
 
+     }
+//键盘向右，就是打开
+   if(id==CHARTEVENT_KEYDOWN)
+     {
+      if((int)lparam==39)
+        {
+         ChartOpen(Symbol(),PERIOD_D1);
+        }
+     }
   }
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
 void btn(string name,int x,int y)
-  {
+  {   
    ObjectCreate(0,name,OBJ_BUTTON,0,0,0);
    ObjectSetInteger(0,name,OBJPROP_XDISTANCE,x);
    ObjectSetInteger(0,name,OBJPROP_YDISTANCE,y);
@@ -160,20 +170,20 @@ void btn(string name,int x,int y)
      {
       ObjectSetInteger(0,name,OBJPROP_BGCOLOR,clrPaleTurquoise);//设置当前的货币兑btn的颜色.
      }
-
   }
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
 void label(string name,string value,double rsi,int x,int y)
   {
+   
    int windows=0;
    ObjectDelete(name);
    ObjectCreate(name,OBJ_LABEL,windows,0,0);
    color cc=clrWhite;
 
-   if(rsi>65) cc = clrRed;
-   if(rsi<35) cc = clrBlue;
+   if(rsi>70) cc = clrRed;
+   if(rsi<30) cc = clrBlue;
 
    ObjectSetText(name,value,10,"Calibri",cc);
    if(StringFind(name,"NinjaLoveFish")!=-1)
@@ -192,6 +202,11 @@ void label(string name,string value,double rsi,int x,int y)
 //+------------------------------------------------------------------+
 void Symb(string sy)
   {
+   if( GetPositionExistNum(sy,MagicNumberBuy)>=2 || GetPositionExistNum(sy,MagicNumberSell)>=2)
+   {
+      return;
+   }
+
    label(EA,EA,50,60,5);
    double b=MarketInfo(sy,MODE_BID);
    int m=25;//竖行的距离.
@@ -249,3 +264,4 @@ void BG()
 //---
   }
 //+------------------------------------------------------------------+
+
