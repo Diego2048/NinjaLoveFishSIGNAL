@@ -23,6 +23,7 @@
 
 extern int               MagicNumberBuy       = 1234;
 extern int               MagicNumberSell      = 4321;
+extern bool              FilterPairs          = true;
 
 
 
@@ -153,7 +154,7 @@ void OnChartEvent(const int id,const long &lparam,const double &dparam,const str
 //|                                                                  |
 //+------------------------------------------------------------------+
 void btn(string name,int x,int y)
-  {   
+  {
    ObjectCreate(0,name,OBJ_BUTTON,0,0,0);
    ObjectSetInteger(0,name,OBJPROP_XDISTANCE,x);
    ObjectSetInteger(0,name,OBJPROP_YDISTANCE,y);
@@ -176,7 +177,7 @@ void btn(string name,int x,int y)
 //+------------------------------------------------------------------+
 void label(string name,string value,double rsi,int x,int y)
   {
-   
+
    int windows=0;
    ObjectDelete(name);
    ObjectCreate(name,OBJ_LABEL,windows,0,0);
@@ -202,10 +203,14 @@ void label(string name,string value,double rsi,int x,int y)
 //+------------------------------------------------------------------+
 void Symb(string sy)
   {
-   if( GetPositionExistNum(sy,MagicNumberBuy)>=2 || GetPositionExistNum(sy,MagicNumberSell)>=2)
-   {
-      return;
-   }
+
+   if(FilterPairs)
+     {
+      if(GetPositionExistNum(sy,MagicNumberBuy)>=2 || GetPositionExistNum(sy,MagicNumberSell)>=2)
+        {
+         return;
+        }
+     }
 
    label(EA,EA,50,60,5);
    double b=MarketInfo(sy,MODE_BID);
@@ -264,4 +269,3 @@ void BG()
 //---
   }
 //+------------------------------------------------------------------+
-
