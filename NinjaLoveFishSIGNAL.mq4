@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 //#define __DEBUG__
 
-#define Version "1.14"
+#define Version "1.17"
 #define EAName "NinjaLoveFishSIGNAL"
 
 #property strict
@@ -56,7 +56,7 @@ void start()
    Symb("EURCAD");
    Symb("EURCHF");
    Symb("EURGBP");
-   Symb("EURSGD");
+//Symb("EURSGD");
    Symb("EURUSD");
    Symb("GBPAUD");
    Symb("GBPCAD");
@@ -86,6 +86,7 @@ void start()
    Symb("USDCAD");
 //Symb("USDCHF");
    Symb("USDJPY");
+   Symb("XAUUSD");
 
    ObjectSetInteger(0,Symbol(),OBJPROP_BGCOLOR,clrGreenYellow);//设置当前的货币兑btn的颜色.
 
@@ -146,7 +147,7 @@ void OnChartEvent(const int id,const long &lparam,const double &dparam,const str
      {
       if((int)lparam==39)
         {
-         ChartOpen(Symbol(),PERIOD_D1);
+         ChartOpen(Symbol(),PERIOD_H4);
         }
      }
   }
