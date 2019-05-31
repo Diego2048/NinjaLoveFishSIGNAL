@@ -21,8 +21,6 @@
 #property indicator_buffers 1       // Number of buffers
 #property indicator_color1 Blue     // Color of the 1st line
 
-extern int               MagicNumberBuy       = 1234;
-extern int               MagicNumberSell      = 4321;
 extern bool              FilterPairs          = true;
 
 
@@ -204,10 +202,10 @@ void label(string name,string value,double rsi,int x,int y)
 //+------------------------------------------------------------------+
 void Symb(string sy)
   {
-
+   int pnum = GetPositionExistNum(sy);
    if(FilterPairs)
      {
-      if(GetPositionExistNum(sy,MagicNumberBuy)>=2 || GetPositionExistNum(sy,MagicNumberSell)>=2)
+      if(pnum>=1)
         {
          return;
         }
@@ -244,9 +242,12 @@ void Symb(string sy)
    label(sy+"MA","MA",cc,230,btop+m*n);
 
    double sp=(int)MarketInfo(sy,MODE_SPREAD);
+   //统计当前的货币兑点差
    label(sy+"SP",DoubleToStr(sp,0),50,280,btop+m*n);
+   //统计持仓货币的数量
+   label(sy+"pnum",DoubleToStr(pnum,0),50,320,btop+m*n);
 
-   btn(sy,320,btop+m*n);
+   btn(sy,350,btop+m*n);
 
    n++;
 
