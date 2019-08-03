@@ -21,9 +21,7 @@
 #property indicator_buffers 1       // Number of buffers
 #property indicator_color1 Blue     // Color of the 1st line
 
-extern bool              FilterPairs          = true;
-
-
+extern int               FilterPairsNum=1;
 
 double Buf_0[];             // Declaring arrays (for indicator buffers)
 int n=1;                    //一行的行数。
@@ -40,21 +38,15 @@ int OnInit() // Special function init()
 //+------------------------------------------------------------------+
 void start()
   {
-   int i,Counted_bars;                // Number of counted bars
-   Counted_bars=IndicatorCounted(); // Number of counted bars
-   i=Bars-Counted_bars-1;           // Index of the first uncounted
-   while(i>=0)                      // Loop for uncounted bars
-     {
-      Buf_0[i]=iMA(Symbol(),PERIOD_H4,700,0,MODE_SMMA,PRICE_CLOSE,i);
-      i--;                          // Calculating index of the next bar
-     }
+
+   label(EA,EA,50,60,5);
 
    Symb("AUDCAD");
    Symb("AUDNZD");
+   Symb("AUDUSD");
    Symb("EURCAD");
    Symb("EURCHF");
    Symb("EURGBP");
-//Symb("EURSGD");
    Symb("EURUSD");
    Symb("GBPAUD");
    Symb("GBPCAD");
@@ -62,31 +54,13 @@ void start()
    Symb("NZDCAD");
    Symb("NZDUSD");
    Symb("USDSGD");
-   Symb("==");
-
-//Symb("_DXY");
-   Symb("AUDCHF");
-   Symb("AUDJPY");
-   Symb("AUDUSD");
-   Symb("CADCHF");
-   Symb("CADJPY");
-//Symb("CHFJPY");
-   Symb("EURAUD");
-   Symb("EURJPY");
-   Symb("EURNZD");
-   Symb("GBPJPY");
-//Symb("GBPNZD");
-//Symb("GBPSGD");
-   Symb("GBPUSD");
-   Symb("NZDCHF");
-   Symb("NZDJPY");
-//Symb("NZDSGD");
-   Symb("USDCAD");
-//Symb("USDCHF");
-   Symb("USDJPY");
-   Symb("XAUUSD");
 
    ObjectSetInteger(0,Symbol(),OBJPROP_BGCOLOR,clrGreenYellow);//设置当前的货币兑btn的颜色.
+
+   label("Comm0","买点：寻找内部结构的对称点，估算挂单，考虑止损跨度。",50,30,10+25*(n+1));
+   label("Comm1","开仓：GPB和JPY开仓RSI指标M5周期12，其他货币兑为8。",50,30,10+25*(n+2));
+   label("Comm2","止损：仓位（0.01/2300），一般情况下可以接受2000-2500的跨度！",50,30,10+25*(n+3));
+   label("Comm3","切记：一切皆有可能的价格，被套三层再开新网格，本金重要！",50,30,10+25*(n+4));
 
    n=1;
   }
@@ -115,7 +89,7 @@ string EA=EAName+" v"+Version+" "+Symbol()+" "+getPeriodName();
 //+------------------------------------------------------------------+
 void deinit()
   {
-   ObjectsDeleteAll();
+   ObjectsDeleteAll(0,OBJ_BUTTON);
   }
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -186,9 +160,13 @@ void label(string name,string value,double rsi,int x,int y)
    if(rsi<30) cc = clrBlue;
 
    ObjectSetText(name,value,10,"Calibri",cc);
-   if(StringFind(name,"NinjaLoveFish")!=-1)
+   if(StringFind(name,"Nin")!=-1)
      {
       ObjectSetText(name,value,12,"Calibri",cc);
+     }
+   if(StringFind(name,"Comm")!=-1)
+     {
+      ObjectSetText(name,value,8,"Calibri",cc);
      }
    ObjectSet(name,OBJPROP_CORNER,ANCHOR_LEFT_UPPER);
    ObjectSet(name,OBJPROP_XDISTANCE,x);
@@ -202,16 +180,13 @@ void label(string name,string value,double rsi,int x,int y)
 //+------------------------------------------------------------------+
 void Symb(string sy)
   {
-   int pnum = GetPositionExistNum(sy);
-   if(FilterPairs)
+   int pnum=GetPositionExistNum(sy);
+
+   if(pnum>=FilterPairsNum)
      {
-      if(pnum>=1)
-        {
-         return;
-        }
+      return;
      }
 
-   label(EA,EA,50,60,5);
    double b=MarketInfo(sy,MODE_BID);
    int m=25;//竖行的距离.
    int btop=10;
@@ -242,12 +217,12 @@ void Symb(string sy)
    label(sy+"MA","MA",cc,230,btop+m*n);
 
    double sp=(int)MarketInfo(sy,MODE_SPREAD);
-   //统计当前的货币兑点差
-   label(sy+"SP",DoubleToStr(sp,0),50,280,btop+m*n);
-   //统计持仓货币的数量
-   label(sy+"pnum",DoubleToStr(pnum,0),50,320,btop+m*n);
+//统计当前的货币兑点差
+//label(sy+"SP",DoubleToStr(sp,0),50,280,btop+m*n);
+//统计持仓货币的数量
+   label(sy+"pnum",DoubleToStr(pnum,0),50,280,btop+m*n);
 
-   btn(sy,350,btop+m*n);
+   btn(sy,320,btop+m*n);
 
    n++;
 
