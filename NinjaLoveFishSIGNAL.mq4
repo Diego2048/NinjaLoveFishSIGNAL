@@ -22,6 +22,11 @@
 #property indicator_color1 Blue     // Color of the 1st line
 
 extern int               FilterPairsNum=1;
+extern int               mnb = 12345678;
+extern int               mns = 87654321;
+extern ENUM_TIMEFRAMES   TMVIEW= PERIOD_H4;
+extern ENUM_TIMEFRAMES   TMEXE = PERIOD_M30;
+
 
 double Buf_0[];             // Declaring arrays (for indicator buffers)
 int n=1;                    //一行的行数。
@@ -41,9 +46,9 @@ void start()
 
    label(EA,EA,50,60,5);
 
+   Symb("txt机会货币兑如下：");
    Symb("AUDCAD");
    Symb("AUDNZD");
-   Symb("AUDUSD");
    Symb("EURCAD");
    Symb("EURCHF");
    Symb("EURGBP");
@@ -52,10 +57,15 @@ void start()
    Symb("GBPCAD");
    Symb("GBPCHF");
    Symb("NZDCAD");
-   Symb("NZDUSD");
    Symb("USDSGD");
+   Symb("XAUUSD");
+   Symb("==");
+   
+   aorders();//现有仓位列表
+
 
    ObjectSetInteger(0,Symbol(),OBJPROP_BGCOLOR,clrGreenYellow);//设置当前的货币兑btn的颜色.
+   ObjectSetInteger(0,Symbol()+".",OBJPROP_BGCOLOR,clrGreenYellow);//设置当前持仓货币兑btn的颜色.
 
    label("Comm0","买点：寻找内部结构的对称点，估算挂单，考虑止损跨度。",50,30,10+25*(n+1));
    label("Comm1","开仓：GPB和JPY开仓RSI指标M5周期12，其他货币兑为8。",50,30,10+25*(n+2));
@@ -63,6 +73,38 @@ void start()
    label("Comm3","切记：一切皆有可能的价格，被套三层再开新网格，本金重要！",50,30,10+25*(n+4));
 
    n=1;
+  }
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void aorders()
+  {
+   Symb("txt现有仓位如下：");
+
+   string a;
+
+   for(int pos=OrdersTotal()-1; pos>=0; pos--)
+     {
+      if(OrderSelect(pos,SELECT_BY_POS,MODE_TRADES))
+        {
+         if(StringFind(a,OrderSymbol())==-1)
+           {
+            a+=OrderSymbol()+",";
+           }
+        }
+     }
+
+   string result[];
+   int k=StringSplit(a,',',result);
+
+   for(int i=0;i<k;i++)
+     {
+      if(result[i]!="")
+        {
+         Symb2(result[i]);
+        }
+     }
+
   }
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -101,15 +143,17 @@ void OnChartEvent(const int id,const long &lparam,const double &dparam,const str
    if(id==CHARTEVENT_OBJECT_CLICK && ObjectGetInteger(0,sparam,OBJPROP_STATE))
      {
       bool selected1=ObjectGetInteger(0,sparam,OBJPROP_STATE);
-      if(Symbol()==sparam && Period()==PERIOD_D1)
+      string sy=StringSubstr(sparam,0,6);
+
+      if(Symbol()==sy && Period()==TMVIEW)
         {
-         ChartSetSymbolPeriod(0,sparam,PERIOD_H4);
+         ChartSetSymbolPeriod(0,sy,TMEXE);
         }
       else
         {
-         ChartSetSymbolPeriod(0,sparam,PERIOD_D1);
+         ChartSetSymbolPeriod(0,sy,TMVIEW);
         }
-
+Print(sparam);
       ObjectSetInteger(0,sparam,OBJPROP_STATE,0);
       ObjectSetInteger(0,sparam,OBJPROP_BGCOLOR,clrGreenYellow);
 
@@ -119,7 +163,7 @@ void OnChartEvent(const int id,const long &lparam,const double &dparam,const str
      {
       if((int)lparam==39)
         {
-         ChartOpen(Symbol(),PERIOD_H4);
+         ChartOpen(Symbol(),TMEXE);
         }
      }
   }
@@ -168,6 +212,10 @@ void label(string name,string value,double rsi,int x,int y)
      {
       ObjectSetText(name,value,8,"Calibri",cc);
      }
+   if(StringFind(name,"txt")!=-1)
+     {
+      ObjectSetText(name,value,8,"Calibri",cc);
+     }
    ObjectSet(name,OBJPROP_CORNER,ANCHOR_LEFT_UPPER);
    ObjectSet(name,OBJPROP_XDISTANCE,x);
    ObjectSet(name,OBJPROP_YDISTANCE,y);
@@ -180,7 +228,7 @@ void label(string name,string value,double rsi,int x,int y)
 //+------------------------------------------------------------------+
 void Symb(string sy)
   {
-   int pnum=GetPositionExistNum(sy);
+   int pnum=GetPositionExistNum(sy,mnb)+GetPositionExistNum(sy,mns);
 
    if(pnum>=FilterPairsNum)
      {
@@ -194,6 +242,14 @@ void Symb(string sy)
    if(sy=="==")
      {
       label(sy+"==","",50,0,btop+m*n);
+      n++;
+      return;
+     }
+
+   if(StringFind(sy,"txt")!=-1)
+     {
+      StringReplace(sy,"txt","");
+      label("txt"+IntegerToString(n),sy,50,30,btop+m*n);
       n++;
       return;
      }
@@ -229,6 +285,46 @@ void Symb(string sy)
   }
 //+------------------------------------------------------------------+
 
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void Symb2(string sy)
+  {
+   int pnum=GetPositionExistNum(sy);
+   double b=MarketInfo(sy,MODE_BID);
+   int m=25;//竖行的距离.
+   int btop=10;
+
+   double rsi15=iRSI(sy,PERIOD_M15,8,PRICE_CLOSE,0);
+   label(sy+"cM15","M15",rsi15,30,btop+m*n);
+   double rsi30=iRSI(sy,PERIOD_M30,8,PRICE_CLOSE,0);
+   label(sy+"cM30","M30",rsi30,80,btop+m*n);
+   double rsi4h=iRSI(sy,PERIOD_H4,8,PRICE_CLOSE,0);
+   label(sy+"cH4","H4",rsi4h,130,btop+m*n);
+   double rsid1=iRSI(sy,PERIOD_D1,8,PRICE_CLOSE,0);
+   label(sy+"cD1","D1",rsid1,180,btop+m*n);
+
+   double cc=50;
+   double ma=iMA(sy,PERIOD_H4,700,0,MODE_SMMA,PRICE_CLOSE,0);
+   double Ma_Bid_Diff=MathAbs(ma-b)/MarketInfo(sy,MODE_POINT);
+
+   if(Ma_Bid_Diff > 1500 && b > ma) cc = 100;
+   if(Ma_Bid_Diff > 1500 && b < ma) cc = 0;
+
+   label(sy+"cMA","MA",cc,230,btop+m*n);
+
+   double sp=(int)MarketInfo(sy,MODE_SPREAD);
+
+   label(sy+"cpnum",DoubleToStr(pnum,0),50,280,btop+m*n);
+
+   btn(sy+".",320,btop+m*n);
+
+   n++;
+
+  }
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void BG()
   {
    string name="name";
