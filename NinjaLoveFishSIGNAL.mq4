@@ -22,10 +22,10 @@
 #property indicator_color1 Blue     // Color of the 1st line
 
 extern int               FilterPairsNum=1;
-extern int               mnb = 12345678;
-extern int               mns = 87654321;
-extern ENUM_TIMEFRAMES   TMVIEW= PERIOD_H4;
-extern ENUM_TIMEFRAMES   TMEXE = PERIOD_M30;
+extern int               mnb = 1234;
+extern int               mns = 4321;
+extern ENUM_TIMEFRAMES   TMVIEW= PERIOD_W1;
+extern ENUM_TIMEFRAMES   TMEXE = PERIOD_H4;
 
 
 double Buf_0[];             // Declaring arrays (for indicator buffers)
@@ -34,9 +34,47 @@ int n=1;                    //一行的行数。
 int OnInit() // Special function init()
   {
    BG();
-   SetIndexBuffer(0,Buf_0);         // Assigning an array to a buffer
-   SetIndexStyle(0,DRAW_LINE,STYLE_SOLID,1);// Line style
-   return 0;                          // Exit the special funct. init()
+
+   ObjectCreate(0,"BUY",OBJ_BUTTON,0,0,0);
+   ObjectSetInteger(0,"BUY",OBJPROP_XDISTANCE,500);
+   ObjectSetInteger(0,"BUY",OBJPROP_YDISTANCE,20);
+   ObjectSetString(0,"BUY",OBJPROP_TEXT,"BUY");
+   ObjectSetInteger(0,"BUY",OBJPROP_COLOR,clrBlack);
+   ObjectSetInteger(0,"BUY",OBJPROP_FONTSIZE,8);
+   ObjectSetInteger(0,"BUY",OBJPROP_XSIZE,70);
+//ObjectSetString(0,"BUY",OBJPROP_FONT,"Calibri"); 
+
+   if(MarketInfo(Symbol(),MODE_SWAPLONG)>0)
+     {
+      ObjectSetInteger(0,"BUY",OBJPROP_BGCOLOR,clrChartreuse);
+      ObjectSetString(0,"BUY",OBJPROP_TEXT,"BUY +"+DoubleToStr(MarketInfo(Symbol(),MODE_SWAPLONG),1));
+     }
+   else
+     {
+      ObjectSetInteger(0,"BUY",OBJPROP_BGCOLOR,clrLightSalmon);
+      ObjectSetString(0,"BUY",OBJPROP_TEXT,"BUY "+DoubleToStr(MarketInfo(Symbol(),MODE_SWAPLONG),1));
+     }
+
+   ObjectCreate(0,"SELL",OBJ_BUTTON,0,0,0);
+   ObjectSetInteger(0,"SELL",OBJPROP_XDISTANCE,500+90);
+   ObjectSetInteger(0,"SELL",OBJPROP_YDISTANCE,20);
+   ObjectSetString(0,"SELL",OBJPROP_TEXT,"SELL");
+   ObjectSetInteger(0,"SELL",OBJPROP_COLOR,clrBlack);
+   ObjectSetInteger(0,"SELL",OBJPROP_FONTSIZE,8);
+   ObjectSetInteger(0,"SELL",OBJPROP_XSIZE,70);
+
+   if(MarketInfo(Symbol(),MODE_SWAPSHORT)>0)
+     {
+      ObjectSetInteger(0,"SELL",OBJPROP_BGCOLOR,clrChartreuse);
+      ObjectSetString(0,"SELL",OBJPROP_TEXT,"SELL +"+DoubleToStr(MarketInfo(Symbol(),MODE_SWAPSHORT),1));
+     }
+   else
+     {
+      ObjectSetInteger(0,"SELL",OBJPROP_BGCOLOR,clrLightSalmon);
+      ObjectSetString(0,"SELL",OBJPROP_TEXT,"SELL "+DoubleToStr(MarketInfo(Symbol(),MODE_SWAPSHORT),1));
+     }
+
+   return 0;
   }
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -53,16 +91,16 @@ void start()
    Symb("EURCHF");
    Symb("EURGBP");
    Symb("EURUSD");
+   Symb("NZDCAD");
+   Symb("USDSGD");
+   Symb("==");
+   Symb("XAUUSD");
    Symb("GBPAUD");
    Symb("GBPCAD");
    Symb("GBPCHF");
-   Symb("NZDCAD");
-   Symb("USDSGD");
-   Symb("XAUUSD");
    Symb("==");
-   
-   aorders();//现有仓位列表
 
+   aorders();//现有仓位列表
 
    ObjectSetInteger(0,Symbol(),OBJPROP_BGCOLOR,clrGreenYellow);//设置当前的货币兑btn的颜色.
    ObjectSetInteger(0,Symbol()+".",OBJPROP_BGCOLOR,clrGreenYellow);//设置当前持仓货币兑btn的颜色.
@@ -153,7 +191,7 @@ void OnChartEvent(const int id,const long &lparam,const double &dparam,const str
         {
          ChartSetSymbolPeriod(0,sy,TMVIEW);
         }
-Print(sparam);
+      Print(sparam);
       ObjectSetInteger(0,sparam,OBJPROP_STATE,0);
       ObjectSetInteger(0,sparam,OBJPROP_BGCOLOR,clrGreenYellow);
 
@@ -228,7 +266,16 @@ void label(string name,string value,double rsi,int x,int y)
 //+------------------------------------------------------------------+
 void Symb(string sy)
   {
-   int pnum=GetPositionExistNum(sy,mnb)+GetPositionExistNum(sy,mns);
+   int pnum ;
+
+   if(mnb>0 && mns>0)
+     {
+      pnum=GetPositionExistNum(sy,mnb)+GetPositionExistNum(sy,mns);
+     }
+   else
+     {
+      pnum=GetPositionExistNum(sy);
+     }
 
    if(pnum>=FilterPairsNum)
      {
