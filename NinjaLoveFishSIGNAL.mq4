@@ -22,18 +22,50 @@
 #property indicator_color1 Blue     // Color of the 1st line
 
 extern int               FilterPairsNum=1;
-extern int               mnb = 1234;
-extern int               mns = 4321;
+extern int               mnb = 123;
+extern int               mns = 321;
 extern ENUM_TIMEFRAMES   TMVIEW= PERIOD_W1;
 extern ENUM_TIMEFRAMES   TMEXE = PERIOD_H4;
 
 
-double Buf_0[];             // Declaring arrays (for indicator buffers)
 int n=1;                    //一行的行数。
+double ps = 0;
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+double GetStartLot()
+  {
+   double earn=((MathAbs(0.00230)/MarketInfo(Symbol(),MODE_TICKSIZE))*MarketInfo(Symbol(),MODE_TICKVALUE));
+   double re=AccountBalance()/500/earn-0.002;
+
+   if(StringFind(Symbol(),"GBP")!=-1 || StringFind(Symbol(),"XAU")!=-1)
+     {
+      re = 0.03;
+     }
+   if(StringFind(Symbol(),"JPY")!=-1)
+     {
+      re = 0.01;
+     }
+
+   return(re);
+  }
+
+
 //--------------------------------------------------------------------
 int OnInit() // Special function init()
   {
    BG();
+
+   ps=MarketInfo(Symbol(),MODE_TICKVALUE)/MarketInfo(Symbol(),MODE_TICKSIZE)/100000;
+
+   ObjectCreate(0,"LOT",OBJ_BUTTON,0,0,0);
+   ObjectSetInteger(0,"LOT",OBJPROP_XDISTANCE,500+180);
+   ObjectSetInteger(0,"LOT",OBJPROP_YDISTANCE,20);
+   ObjectSetString(0,"LOT",OBJPROP_TEXT,"Lots:"+DoubleToStr(GetStartLot(),2));
+   ObjectSetInteger(0,"LOT",OBJPROP_COLOR,clrBlack);
+   ObjectSetInteger(0,"LOT",OBJPROP_FONTSIZE,8);
+   ObjectSetInteger(0,"LOT",OBJPROP_XSIZE,70);
 
    ObjectCreate(0,"BUY",OBJ_BUTTON,0,0,0);
    ObjectSetInteger(0,"BUY",OBJPROP_XDISTANCE,500);
@@ -42,7 +74,7 @@ int OnInit() // Special function init()
    ObjectSetInteger(0,"BUY",OBJPROP_COLOR,clrBlack);
    ObjectSetInteger(0,"BUY",OBJPROP_FONTSIZE,8);
    ObjectSetInteger(0,"BUY",OBJPROP_XSIZE,70);
-//ObjectSetString(0,"BUY",OBJPROP_FONT,"Calibri"); 
+//ObjectSetString(0,"BUY",OBJPROP_FONT,"Calibri");
 
    if(MarketInfo(Symbol(),MODE_SWAPLONG)>0)
      {
@@ -94,11 +126,6 @@ void start()
    Symb("NZDCAD");
    Symb("USDSGD");
    Symb("==");
-   Symb("XAUUSD");
-   Symb("GBPAUD");
-   Symb("GBPCAD");
-   Symb("GBPCHF");
-   Symb("==");
 
    aorders();//现有仓位列表
 
@@ -110,7 +137,18 @@ void start()
    label("Comm2","止损：仓位（0.01/2300），一般情况下可以接受2000-2500的跨度！",50,30,10+25*(n+3));
    label("Comm3","切记：一切皆有可能的价格，被套三层再开新网格，本金重要！",50,30,10+25*(n+4));
 
+   label("Comm4",Symbol()+"价值系数："+DoubleToStr(ps,5),50,30,10+25*(n+5));
+
    n=1;
+
+  }
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+int deinit()
+  {
+   ObjectsDeleteAll();
+   return(0);
   }
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -135,7 +173,7 @@ void aorders()
    string result[];
    int k=StringSplit(a,',',result);
 
-   for(int i=0;i<k;i++)
+   for(int i=0; i<k; i++)
      {
       if(result[i]!="")
         {
@@ -163,14 +201,10 @@ string getPeriodName()
   }
 //+------------------------------------------------------------------+
 
-string EA=EAName+" v"+Version+" "+Symbol()+" "+getPeriodName();
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void deinit()
-  {
-   ObjectsDeleteAll(0,OBJ_BUTTON);
-  }
+string EA=EAName+" v"+Version+" "+Symbol()+" "+getPeriodName();
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
@@ -238,8 +272,10 @@ void label(string name,string value,double rsi,int x,int y)
    ObjectCreate(name,OBJ_LABEL,windows,0,0);
    color cc=clrWhite;
 
-   if(rsi>70) cc = clrRed;
-   if(rsi<30) cc = clrBlue;
+   if(rsi>60)
+      cc = clrRed;
+   if(rsi<40)
+      cc = clrBlue;
 
    ObjectSetText(name,value,10,"Calibri",cc);
    if(StringFind(name,"Nin")!=-1)
@@ -266,7 +302,7 @@ void label(string name,string value,double rsi,int x,int y)
 //+------------------------------------------------------------------+
 void Symb(string sy)
   {
-   int pnum ;
+   int pnum;
 
    if(mnb>0 && mns>0)
      {
@@ -314,8 +350,10 @@ void Symb(string sy)
    double ma=iMA(sy,PERIOD_H4,700,0,MODE_SMMA,PRICE_CLOSE,0);
    double Ma_Bid_Diff=MathAbs(ma-b)/MarketInfo(sy,MODE_POINT);
 
-   if(Ma_Bid_Diff > 1500 && b > ma) cc = 100;
-   if(Ma_Bid_Diff > 1500 && b < ma) cc = 0;
+   if(Ma_Bid_Diff > 1500 && b > ma)
+      cc = 100;
+   if(Ma_Bid_Diff > 1500 && b < ma)
+      cc = 0;
 
    label(sy+"MA","MA",cc,230,btop+m*n);
 
@@ -355,8 +393,10 @@ void Symb2(string sy)
    double ma=iMA(sy,PERIOD_H4,700,0,MODE_SMMA,PRICE_CLOSE,0);
    double Ma_Bid_Diff=MathAbs(ma-b)/MarketInfo(sy,MODE_POINT);
 
-   if(Ma_Bid_Diff > 1500 && b > ma) cc = 100;
-   if(Ma_Bid_Diff > 1500 && b < ma) cc = 0;
+   if(Ma_Bid_Diff > 1500 && b > ma)
+      cc = 100;
+   if(Ma_Bid_Diff > 1500 && b < ma)
+      cc = 0;
 
    label(sy+"cMA","MA",cc,230,btop+m*n);
 
