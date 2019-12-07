@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 //#define __DEBUG__
 
-#define Version "1.17"
+#define Version "1.18"
 #define EAName "NinjaLoveFishSIGNAL"
 
 #property strict
@@ -76,6 +76,7 @@ int OnInit() // Special function init()
    ObjectSetInteger(0,"BUY",OBJPROP_XSIZE,70);
 //ObjectSetString(0,"BUY",OBJPROP_FONT,"Calibri");
 
+
    if(MarketInfo(Symbol(),MODE_SWAPLONG)>0)
      {
       ObjectSetInteger(0,"BUY",OBJPROP_BGCOLOR,clrChartreuse);
@@ -106,6 +107,14 @@ int OnInit() // Special function init()
       ObjectSetString(0,"SELL",OBJPROP_TEXT,"SELL "+DoubleToStr(MarketInfo(Symbol(),MODE_SWAPSHORT),1));
      }
 
+   ObjectCreate(0,"CLR",OBJ_BUTTON,0,0,0);
+   ObjectSetInteger(0,"CLR",OBJPROP_XDISTANCE,500+270);
+   ObjectSetInteger(0,"CLR",OBJPROP_YDISTANCE,20);
+   ObjectSetString(0,"CLR",OBJPROP_TEXT,"CLR");
+   ObjectSetInteger(0,"CLR",OBJPROP_COLOR,clrBlack);
+   ObjectSetInteger(0,"CLR",OBJPROP_FONTSIZE,8);
+   ObjectSetInteger(0,"CLR",OBJPROP_XSIZE,70);
+
    return 0;
   }
 //+------------------------------------------------------------------+
@@ -119,12 +128,19 @@ void start()
    Symb("txt机会货币兑如下：");
    Symb("AUDCAD");
    Symb("AUDNZD");
+   Symb("AUDCHF");
    Symb("EURCAD");
    Symb("EURCHF");
    Symb("EURGBP");
    Symb("EURUSD");
    Symb("NZDCAD");
    Symb("USDSGD");
+   Symb("USDCAD");
+   Symb("==");
+   Symb("USDJPY");
+   Symb("GBPCAD");
+   Symb("GBPAUD");
+   Symb("XAUUSD");
    Symb("==");
 
    aorders();//现有仓位列表
@@ -147,7 +163,7 @@ void start()
 //+------------------------------------------------------------------+
 int deinit()
   {
-   ObjectsDeleteAll();
+//ObjectsDeleteAll();
    return(0);
   }
 //+------------------------------------------------------------------+
@@ -225,9 +241,20 @@ void OnChartEvent(const int id,const long &lparam,const double &dparam,const str
         {
          ChartSetSymbolPeriod(0,sy,TMVIEW);
         }
+
+      if("CLR"==sy)
+        {
+         ObjectsDeleteAll();
+         OnInit();
+         start();
+        }
+      else
+        {
+         ObjectSetInteger(0,sparam,OBJPROP_STATE,0);
+         ObjectSetInteger(0,sparam,OBJPROP_BGCOLOR,clrGreenYellow);
+
+        }
       Print(sparam);
-      ObjectSetInteger(0,sparam,OBJPROP_STATE,0);
-      ObjectSetInteger(0,sparam,OBJPROP_BGCOLOR,clrGreenYellow);
 
      }
 //键盘向右，就是打开
@@ -244,6 +271,7 @@ void OnChartEvent(const int id,const long &lparam,const double &dparam,const str
 //+------------------------------------------------------------------+
 void btn(string name,int x,int y)
   {
+   ObjectDelete(0,name);
    ObjectCreate(0,name,OBJ_BUTTON,0,0,0);
    ObjectSetInteger(0,name,OBJPROP_XDISTANCE,x);
    ObjectSetInteger(0,name,OBJPROP_YDISTANCE,y);
