@@ -129,6 +129,7 @@ void start()
    Symb("AUDCAD");
    Symb("AUDNZD");
    Symb("AUDCHF");
+   Symb("EURAUD");
    Symb("EURCAD");
    Symb("EURCHF");
    Symb("EURGBP");
