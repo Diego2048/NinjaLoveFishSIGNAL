@@ -134,14 +134,14 @@ void start()
    Symb("EURCHF");
    Symb("EURGBP");
    Symb("EURUSD");
-   Symb("NZDCAD");
-   Symb("USDSGD");
+   //Symb("NZDCAD");
+   //Symb("USDSGD");
    Symb("USDCAD");
    Symb("==");
    Symb("USDJPY");
-   Symb("GBPCAD");
-   Symb("GBPAUD");
-   Symb("XAUUSD");
+   //Symb("GBPCAD");
+   //Symb("GBPAUD");
+   //Symb("XAUUSD");
    Symb("==");
 
    aorders();//现有仓位列表
@@ -259,7 +259,8 @@ void OnChartEvent(const int id,const long &lparam,const double &dparam,const str
 
      }
 //键盘向右，就是打开
-   if(id==CHARTEVENT_KEYDOWN)
+
+   if(id==CHARTEVENT_KEYDOWN && getExistChart()==0)
      {
       if((int)lparam==39)
         {
@@ -267,6 +268,34 @@ void OnChartEvent(const int id,const long &lparam,const double &dparam,const str
         }
      }
   }
+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+int getExistChart()
+  {
+   int re = 0;
+   long currChart,prevChart=ChartFirst();
+   int i=0,limit=100;
+//Print("ChartFirst =",ChartSymbol(prevChart)," ID =",prevChart);
+   while(i<limit)// We have certainly not more than 100 open charts
+     {
+      currChart=ChartNext(prevChart); // Get the new chart ID by using the previous chart ID
+      if(currChart<0)
+         break;          // Have reached the end of the chart list
+      if(ChartSymbol(currChart)==Symbol())
+        {
+         re=1;
+         break;
+        }
+      //Print(i,ChartSymbol(currChart)," ID =",currChart);
+      prevChart=currChart;// let's save the current chart ID for the ChartNext()
+      i++;// Do not forget to increase the counter
+     }
+   return re;
+  }
+
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
@@ -448,7 +477,7 @@ void BG()
 
    ObjectDelete(name);
    ObjectCreate(name,OBJ_LABEL,0,0,0);
-   ObjectSetText(name,value,900,"Webdings",clrBlack);
+   ObjectSetText(name,value,950,"Webdings",clrBlack);
    ObjectSet(name,OBJPROP_CORNER,ANCHOR_LEFT_UPPER);
    ObjectSet(name,OBJPROP_ANCHOR,ANCHOR_LEFT_UPPER);
 //ObjectSetString(0,name,OBJPROP_TOOLTIP,"NinjaLoveFishSIGNAL");
